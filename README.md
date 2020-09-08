@@ -4,6 +4,18 @@ This project is to compare performance of various binary classifiers
 
 ---
 
-Data source: [Criteo ads data]
+## 1. Training jobs
 
-[Criteo ads data]: http://labs.criteo.com/2014/02/kaggle-display-advertising-challenge-dataset/
+|Project|Data source|Project Directory|
+|:---|:---|:---|
+|Criteo ads data|[Criteo ads data link]|[Criteo project dir]|
+
+[Criteo ads data link]: http://labs.criteo.com/2014/02/kaggle-display-advertising-challenge-dataset/
+[Criteo project dir]: py_app/criteo_ads_data
+
+## 2. Sagemaker training pipeline
+
+The training pipeline is triggered by
+```shell script
+python py_app/sm_run.py
+```
