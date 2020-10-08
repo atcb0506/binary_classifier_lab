@@ -32,6 +32,5 @@ def sagemaker_training(
     estimator.fit(
         inputs=inputs,
         job_name=training_job_name,
-        wait=True,
-        logs='All'
+        wait=False,
     )
