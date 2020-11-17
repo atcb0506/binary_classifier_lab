@@ -30,12 +30,12 @@ def _recover(
 
 
 def dataprep(
-        data_source: str,
+        data_path: str,
         batch_size: int
 ) -> Tuple[tf.data.Dataset, tf.data.Dataset]:
 
     dataset = tf.data.experimental.make_csv_dataset(
-        file_pattern=data_source,
+        file_pattern=data_path,
         batch_size=batch_size,
         num_epochs=1,
         column_defaults=COLUMN_DEFAULTS,

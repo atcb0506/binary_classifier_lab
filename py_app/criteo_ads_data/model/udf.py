@@ -1,5 +1,6 @@
 import os
 import tensorflow as tf
+from datetime import datetime
 
 from model.model import BinaryClassifier
 
@@ -9,6 +10,7 @@ def model_fit(
         training_set: tf.data.Dataset,
         validation_set: tf.data.Dataset,
         export_path: str,
+        tf_logs_path: str,
         epochs: int = 20,
         verbose: int = 1,
         worker: int = 4,
@@ -17,6 +19,10 @@ def model_fit(
     metrics = [
         tf.keras.metrics.AUC(name='auc'),
     ]
+    log_dir = f'{tf_logs_path}/logs/fit/' \
+              f'{datetime.now().strftime("%Y%m%d-%H%M%S")}'
+    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir)
+    callbacks = [tensorboard_callback]
 
     model.compile(
         loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
@@ -28,6 +34,7 @@ def model_fit(
         validation_data=validation_set,
         epochs=epochs,
         verbose=verbose,
+        callbacks=callbacks,
         workers=worker)
 
     model.summary()

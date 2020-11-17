@@ -1,9 +1,11 @@
 import argparse
+from datetime import datetime
+import subprocess
 import os
 
 import sagemaker as sm
 
-from comm_lib.metadata import data
+from comm_lib.metadata import ProjectMetaData
 from sm_lib.config import SagemakerPipelineConfig
 from sm_lib.estimator import SagemakerTFEstimator
 
@@ -13,18 +15,27 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--project_name', type=str)
     parser.add_argument('--env', type=str)
+    parser.add_argument('--region', type=str)
     parser.add_argument('--mode', type=str, default='')
     args = parser.parse_args()
     project_name = args.project_name
     env = args.env
     mode = args.mode
+    region = args.region
+    current_time = datetime.utcnow().strftime('%Y%m%d%H%M%S')
 
     # config & metadata init
     config = SagemakerPipelineConfig(
         project_name=project_name,
-        env=env
+        env=env,
+        aws_region=region,
+        current_time=current_time,
     )
-    metadata = data.get(project_name)
+    metadata = ProjectMetaData(
+        project_name=project_name,
+        env=env,
+        current_time=current_time,
+    ).getter()
 
     # create sagemaker session
     sess = sm.Session(
@@ -46,10 +57,21 @@ if __name__ == '__main__':
         ep_instance_init_count=config.getter('ep_instance_init_count'),
         ep_instance_type=config.getter('ep_instance_type'),
         ep_name=config.getter('ep_name'),
+        max_run=config.getter('max_run'),
+        hyperparameters=metadata.get('shared_hyperparameters'),
     )
 
     # fit
     estimator.fit()
+
+    # run tensorboard
+    tf_logs_path = metadata.get('shared_hyperparameters')['tf_logs_path']
+    os_env = dict(os.environ)
+    os_env['AWS_REGION'] = region
+    subprocess.run(
+        ['tensorboard', '--logdir', tf_logs_path],
+        env=os_env
+    )
 
     # deploy
     if mode == 'deploy':
