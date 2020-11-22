@@ -2,6 +2,7 @@ from typing import Dict, List
 
 import sagemaker as sm
 from sagemaker.tensorflow import TensorFlow
+from sagemaker.debugger import TensorBoardOutputConfig
 
 
 class SagemakerTFEstimator(TensorFlow):
@@ -21,6 +22,8 @@ class SagemakerTFEstimator(TensorFlow):
             ep_instance_init_count: int,
             ep_instance_type: str,
             ep_name: str,
+            max_run: int,
+            hyperparameters: Dict[str, str],
             **kwargs
     ) -> None:
 
@@ -34,6 +37,8 @@ class SagemakerTFEstimator(TensorFlow):
             py_version=py_version,
             sagemaker_session=sm_session,
             tags=project_tag,
+            max_run=max_run,
+            hyperparameters=hyperparameters,
             **kwargs
         )
         self._input = inputs
@@ -48,7 +53,7 @@ class SagemakerTFEstimator(TensorFlow):
         super().fit(
             inputs=self._input,
             job_name=self._training_job_name,
-            wait=True,
+            wait=False,
             logs='All',
             **kwargs,
         )
@@ -61,4 +66,5 @@ class SagemakerTFEstimator(TensorFlow):
             endpoint_name=self._ep_name,
             tags=self._project_tag,
             model_name=self._ep_name,
+            **kwargs,
         )

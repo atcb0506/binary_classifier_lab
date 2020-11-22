@@ -1,10 +1,8 @@
-from datetime import datetime
-import json
-from typing import Any, Dict
+from typing import Any
 
-import boto3
-from botocore.exceptions import ClientError
 import tensorflow as tf
+
+from comm_lib.func import get_secret
 
 
 class SagemakerPipelineConfig(object):
@@ -12,10 +10,13 @@ class SagemakerPipelineConfig(object):
     def __init__(
             self,
             project_name: str,
-            env: str) -> None:
+            env: str,
+            aws_region: str,
+            current_time: str,
+    ) -> None:
 
         self._ENV = env
-        self._INSTANCE_TYPE = 'ml.m5.large'
+        self._INSTANCE_TYPE = 'ml.c5.xlarge'  # 'ml.c5.4xlarge'
         self._INSTANCE_COUNT = 1
         self._EP_INIT_INSTANCE_TYPE = 'ml.m5.large'
         self._EP_INSTANCE_COUNT = 1
@@ -33,20 +34,21 @@ class SagemakerPipelineConfig(object):
         self._PY_VERSION = 'py37'
         self._TF_VERSION = tf.__version__
         self._SECRET_NAME = f'{env}/sagemaker/config'
-        self._REGION = 'ap-southeast-1'
+        self._REGION = aws_region
+        self._MAX_RUN = 2 * 24 * 60 * 60
+        self.current_time = current_time
 
     def getter(
             self,
             attr: str
     ) -> Any:
 
-        sm_secret = self._get_secret(
+        sm_secret = get_secret(
             region_name=self._REGION,
             secret_name=f'{self._ENV}/sagemaker/config'
         )
-        current_time = datetime.utcnow().strftime('%Y%m%d%H%M%S')
-        training_job_name = f'{self._PROJECT_NAME}-training-{current_time}'
-        ep_name = f'{self._PROJECT_NAME}-endpoint-{current_time}'
+        training_job_name = f'{self._PROJECT_NAME}-training-{self.current_time}'
+        ep_name = f'{self._PROJECT_NAME}-endpoint-{self.current_time}'
 
         data = {
             'sm_bucket': sm_secret['sm_bucket'],
@@ -60,27 +62,7 @@ class SagemakerPipelineConfig(object):
             'ep_name': ep_name,
             'py_version': self._PY_VERSION,
             'tf_version': self._TF_VERSION,
+            'max_run': self._MAX_RUN,
         }
 
         return data.get(attr)
-
-    @staticmethod
-    def _get_secret(
-            region_name: str,
-            secret_name: str
-    ) -> Dict[str, str]:
-
-        session = boto3.session.Session()
-        client = session.client(
-            service_name='secretsmanager',
-            region_name=region_name
-        )
-
-        try:
-            get_secret_value_response = client.get_secret_value(
-                SecretId=secret_name
-            )
-            return json.loads(get_secret_value_response['SecretString'])
-
-        except ClientError as e:
-            raise e

@@ -10,26 +10,19 @@ from model.model import BinaryClassifier
 from model.udf import model_fit
 
 
-def _parsed_args() -> Dict[str, str]:
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--data_source', type=str, default=os.environ.get('SM_CHANNEL_DATA_SOURCE'))
-    parser.add_argument('--export_dir', type=str, default=os.environ.get('SM_MODEL_DIR'))
-    parser.add_argument('--model_dir', type=str)  # TODO: not sure the exact use case
-
-    return vars(parser.parse_args())
-
-
 def main(
-        data_source: str,
+        data_path: str,
+        data_filename: str,
+        tf_logs_path: str,
         export_dir: str,
-        model_dir: str,
+        batch_size: int,
+        epochs: int,
 ) -> None:
 
     # data preparation
     train, validate = dataprep(
-        data_source=os.path.join(data_source, 'sample_test.txt'),
-        batch_size=200
+        data_path=os.path.join(data_path, data_filename),
+        batch_size=batch_size
     )
 
     # data precessing
@@ -56,10 +49,37 @@ def main(
         model=binary_classifier,
         training_set=train,
         validation_set=validate,
-        export_path=export_dir
+        export_path=export_dir,
+        tf_logs_path=tf_logs_path,
+        epochs=epochs,
     )
 
 
 if __name__ == '__main__':
 
-    main(**_parsed_args())
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--data_path',
+        type=str,
+        default=os.environ.get('SM_CHANNEL_DATA_SOURCE'),
+    )
+    parser.add_argument(
+        '--export_dir',
+        type=str,
+        default=os.environ.get('SM_MODEL_DIR'),
+    )
+    parser.add_argument('--data_filename', type=str, default='sample_train.txt')
+    parser.add_argument('--tf_logs_path', type=str, default='../saved')
+    parser.add_argument('--epochs', type=int, default=50)
+    parser.add_argument('--batch-size', type=int, default=500)
+    parser.add_argument('--model_dir', type=str)
+    args = parser.parse_args()
+
+    main(
+        data_path=args.data_path,
+        data_filename=args.data_filename,
+        tf_logs_path=args.tf_logs_path,
+        export_dir=args.export_dir,
+        batch_size=args.batch_size,
+        epochs=args.epochs
+    )

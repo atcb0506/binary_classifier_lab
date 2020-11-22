@@ -21,7 +21,9 @@ class FeaturesExtraction:
     ) -> Union[Dict[str, Any], Tuple[Dict[str, Any], List[Any]]]:
 
         numeric_features = [features.pop(col) for col in self.num_col]
-        numeric_features = [tf.cast(feat, tf.float32) for feat in numeric_features]
+        numeric_features = [
+            tf.cast(feat, tf.float32) for feat in numeric_features
+        ]
         numeric_features = tf.stack(numeric_features, axis=-1)
 
         if self.feature_type == 'cat':

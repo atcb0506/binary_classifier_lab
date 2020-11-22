@@ -14,7 +14,8 @@ class ANNLayer(tf.keras.layers.Layer):
 
         super(ANNLayer, self).__init__(**kwargs)
 
-        assert num_hidden_layer == len(ls_hidden_unit), f'num_hidden_layer != len(ls_hidden_unit)'
+        assert num_hidden_layer == len(ls_hidden_unit),\
+            f'num_hidden_layer != len(ls_hidden_unit)'
         self.num_hidden_layer = num_hidden_layer
 
         # fully connected hidden layers

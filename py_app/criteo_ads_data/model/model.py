@@ -16,7 +16,11 @@ class BinaryClassifier(tf.keras.Model):
         super(BinaryClassifier, self).__init__(**kwargs)
         self.processing_layer = processing_layer
         self.model_architecture = model_architecture
-        self.output_layer = tf.keras.layers.Dense(1, activation='sigmoid', name='output_layer')
+        self.output_layer = tf.keras.layers.Dense(
+            units=1,
+            activation='sigmoid',
+            name='output_layer'
+        )
 
     def call(
             self,
