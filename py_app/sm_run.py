@@ -1,7 +1,5 @@
 import argparse
 from datetime import datetime
-import subprocess
-import os
 
 import sagemaker as sm
 
@@ -53,26 +51,12 @@ if __name__ == '__main__':
         tn_instance_type=config.getter('sm_instance_type'),
         tn_instance_count=config.getter('sm_instance_count'),
         tn_job_name=config.getter('training_job_name'),
-        inputs=metadata.get('sm_input'),
-        ep_instance_init_count=config.getter('ep_instance_init_count'),
-        ep_instance_type=config.getter('ep_instance_type'),
-        ep_name=config.getter('ep_name'),
         max_run=config.getter('max_run'),
-        hyperparameters=metadata.get('shared_hyperparameters'),
+        shared_hyperparameters=metadata.get('shared_hyperparameters'),
     )
 
     # fit
-    estimator.fit()
-
-    # run tensorboard
-    tf_logs_path = metadata.get('shared_hyperparameters')['tf_logs_path']
-    os_env = dict(os.environ)
-    os_env['AWS_REGION'] = region
-    subprocess.run(
-        ['tensorboard', '--logdir', tf_logs_path],
-        env=os_env
+    estimator.model_fit(
+        inputs=metadata.get('sm_input'),
+        # hparam=metadata.get('hparam_tuning'),
     )
-
-    # deploy
-    if mode == 'deploy':
-        estimator.deploy()
