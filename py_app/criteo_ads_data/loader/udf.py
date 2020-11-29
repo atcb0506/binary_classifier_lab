@@ -1,60 +1,48 @@
+import os
 from typing import Tuple
 
 import tensorflow as tf
 
-from config import COLUMN_DEFAULTS, COLUMNS, LBL_COLUMN, NUM_COLUMNS
-from loader.faeture_extraction import FeaturesExtraction
+from dataprep.tfrecord import tfrecord_decoder
 
 
-def _is_validate(
-        idx: int,
-        _
-) -> bool:
-
+def _is_validate(idx: int, _) -> bool:
     return idx % 5 == 0
 
 
-def _is_train(
-        idx: int,
-        data: tf.data.Dataset
-) -> bool:
-
+def _is_train(idx: int, data: tf.data.Dataset) -> bool:
     return not _is_validate(idx, data)
 
 
-def _recover(
-        _,
-        data: tf.data.Dataset
-) -> tf.data.Dataset:
+def _recover(_, data: tf.data.Dataset) -> tf.data.Dataset:
     return data
 
 
 def dataprep(
         data_path: str,
-        batch_size: int
+        data_filename: str,
+        batch_size: int,
+        shuffle_buffer: int = 10000,
 ) -> Tuple[tf.data.Dataset, tf.data.Dataset]:
 
-    dataset = tf.data.experimental.make_csv_dataset(
-        file_pattern=data_path,
-        batch_size=batch_size,
-        num_epochs=1,
-        column_defaults=COLUMN_DEFAULTS,
-        column_names=COLUMNS,
-        label_name=LBL_COLUMN[0],
-        field_delim='\t',
-        shuffle=True,
-        header=False,
-    )\
-        .shuffle(10, reshuffle_each_iteration=False)
+    tf_autotune = tf.data.experimental.AUTOTUNE
 
-    packed_dataset = dataset.map(FeaturesExtraction(num_col=NUM_COLUMNS))
+    dataset = tf.data.TFRecordDataset(
+        filenames=os.path.join(data_path, data_filename),
+        num_parallel_reads=2,
+    ) \
+        .map(tfrecord_decoder, num_parallel_calls=tf_autotune) \
+        .cache() \
+        .batch(batch_size=batch_size) \
+        .shuffle(shuffle_buffer, reshuffle_each_iteration=False) \
+        .prefetch(buffer_size=tf_autotune)
 
-    validate_dataset = packed_dataset.enumerate() \
+    validate_dataset = dataset.enumerate() \
         .filter(_is_validate) \
-        .map(_recover)
+        .map(_recover, num_parallel_calls=tf_autotune)
 
-    train_dataset = packed_dataset.enumerate() \
+    train_dataset = dataset.enumerate() \
         .filter(_is_train) \
-        .map(_recover)
+        .map(_recover, num_parallel_calls=tf_autotune)
 
     return train_dataset, validate_dataset

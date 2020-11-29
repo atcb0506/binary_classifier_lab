@@ -131,6 +131,7 @@ dmypy.json
 /data
 /.idea
 *.ipynb_checkpoints
-/model
+/data/criteo_ads_data/dac/input/model
 /tensorboard
 /.run
+/notebook

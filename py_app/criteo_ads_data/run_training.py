@@ -28,7 +28,8 @@ def main(
 
     # data preparation
     train, validate = dataprep(
-        data_path=os.path.join(data_path, data_filename),
+        data_path=data_path,
+        data_filename=data_filename,
         batch_size=batch_size
     )
 
@@ -67,9 +68,10 @@ if __name__ == '__main__':
 
     # arg parser
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_filename', type=str, default='sample_train.txt')
+    parser.add_argument('--data_filename', type=str,
+                        default='tfrecord_10000.tfrecord')
     parser.add_argument('--tf_logs_path', type=str, default='../tensorboard')
-    parser.add_argument('--epochs', type=int, default=5)
+    parser.add_argument('--epochs', type=int, default=3)
     parser.add_argument('--batch_size', type=int, default=512)
     parser.add_argument('--model_dir', type=str)
     args = parser.parse_args()

@@ -8,16 +8,15 @@ class FeaturesExtraction:
     def __init__(
             self,
             num_col: List[str],
-            feature_type: str = None
+            lbl_col: str,
     ) -> None:
 
         self.num_col = num_col
-        self.feature_type = feature_type
+        self.lbl_col = lbl_col
 
     def __call__(
             self,
-            features: Dict[str, Any],
-            labels: List[Any]
+            features: Dict[str, Any]
     ) -> Union[Dict[str, Any], Tuple[Dict[str, Any], List[Any]]]:
 
         numeric_features = [features.pop(col) for col in self.num_col]
@@ -26,13 +25,5 @@ class FeaturesExtraction:
         ]
         numeric_features = tf.stack(numeric_features, axis=-1)
 
-        if self.feature_type == 'cat':
-            return features
-        if self.feature_type == 'numeric':
-            return numeric_features
-        if self.feature_type == 'no_label':
-            features['numeric'] = numeric_features
-            return features
-        else:
-            features['numeric'] = numeric_features
-            return features, labels
+        features['numeric'] = numeric_features
+        return features, features[self.lbl_col]
