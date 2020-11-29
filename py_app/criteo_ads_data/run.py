@@ -1,8 +1,8 @@
 import argparse
+import json
 import os
 
-from typing import Dict
-
+from hparams.config import hparams_init
 from loader.udf import dataprep
 from layers.udf import build_data_processing_layer
 from layers.ann_layer import ANNLayer
@@ -13,11 +13,18 @@ from model.udf import model_fit
 def main(
         data_path: str,
         data_filename: str,
-        tf_logs_path: str,
+        log_dir: str,
         export_dir: str,
         batch_size: int,
         epochs: int,
 ) -> None:
+
+    # init hparams
+    hparams = hparams_init(
+        epochs=epochs,
+        batch_size=batch_size,
+        log_dir=log_dir
+    )
 
     # data preparation
     train, validate = dataprep(
@@ -50,36 +57,35 @@ def main(
         training_set=train,
         validation_set=validate,
         export_path=export_dir,
-        tf_logs_path=tf_logs_path,
+        log_dir=log_dir,
+        hparams=hparams,
         epochs=epochs,
     )
 
 
 if __name__ == '__main__':
 
+    # arg parser
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--data_path',
-        type=str,
-        default=os.environ.get('SM_CHANNEL_DATA_SOURCE'),
-    )
-    parser.add_argument(
-        '--export_dir',
-        type=str,
-        default=os.environ.get('SM_MODEL_DIR'),
-    )
     parser.add_argument('--data_filename', type=str, default='sample_train.txt')
-    parser.add_argument('--tf_logs_path', type=str, default='../saved')
-    parser.add_argument('--epochs', type=int, default=50)
-    parser.add_argument('--batch-size', type=int, default=500)
+    parser.add_argument('--tf_logs_path', type=str, default='../tensorboard')
+    parser.add_argument('--epochs', type=int, default=5)
+    parser.add_argument('--batch_size', type=int, default=512)
     parser.add_argument('--model_dir', type=str)
     args = parser.parse_args()
 
+    # handle env
+    data_path = os.environ.get('SM_CHANNEL_DATA_SOURCE')
+    export_dir = os.environ.get('SM_MODEL_DIR')
+    job_name = json.loads(os.environ.get('SM_TRAINING_ENV'))['job_name']
+    log_dir = f'{args.tf_logs_path}/log/{job_name}'
+
+    # run program
     main(
-        data_path=args.data_path,
+        data_path=data_path,
         data_filename=args.data_filename,
-        tf_logs_path=args.tf_logs_path,
-        export_dir=args.export_dir,
+        log_dir=log_dir,
+        export_dir=export_dir,
         batch_size=args.batch_size,
         epochs=args.epochs
     )

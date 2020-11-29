@@ -18,8 +18,6 @@ class SagemakerPipelineConfig(object):
         self._ENV = env
         self._INSTANCE_TYPE = 'ml.c5.xlarge'  # 'ml.c5.4xlarge'
         self._INSTANCE_COUNT = 1
-        self._EP_INIT_INSTANCE_TYPE = 'ml.m5.large'
-        self._EP_INSTANCE_COUNT = 1
         self._PROJECT_NAME = project_name
         self._TAG = [
             {
@@ -47,19 +45,15 @@ class SagemakerPipelineConfig(object):
             region_name=self._REGION,
             secret_name=f'{self._ENV}/sagemaker/config'
         )
-        training_job_name = f'{self._PROJECT_NAME}-training-{self.current_time}'
-        ep_name = f'{self._PROJECT_NAME}-endpoint-{self.current_time}'
+        training_job_name = f'{self._PROJECT_NAME}-tn-{self.current_time}'
 
         data = {
             'sm_bucket': sm_secret['sm_bucket'],
             'sm_role': sm_secret['sm_role'],
             'sm_instance_type': self._INSTANCE_TYPE,
             'sm_instance_count': self._INSTANCE_COUNT,
-            'ep_instance_type': self._EP_INIT_INSTANCE_TYPE,
-            'ep_instance_init_count': self._EP_INSTANCE_COUNT,
             'project_tag': self._TAG,
             'training_job_name': training_job_name,
-            'ep_name': ep_name,
             'py_version': self._PY_VERSION,
             'tf_version': self._TF_VERSION,
             'max_run': self._MAX_RUN,

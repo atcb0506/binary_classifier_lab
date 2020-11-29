@@ -1,11 +1,11 @@
-from typing import Dict, List
+from typing import Dict, List, Any
 
 import sagemaker as sm
 from sagemaker.tensorflow import TensorFlow
-from sagemaker.debugger import TensorBoardOutputConfig
+from sagemaker.tuner import HyperparameterTuner
 
 
-class SagemakerTFEstimator(TensorFlow):
+class SagemakerTFEstimator(object):
 
     def __init__(
             self,
@@ -18,16 +18,12 @@ class SagemakerTFEstimator(TensorFlow):
             tn_instance_type: str,
             tn_instance_count: int,
             tn_job_name: str,
-            inputs: Dict[str, str],
-            ep_instance_init_count: int,
-            ep_instance_type: str,
-            ep_name: str,
             max_run: int,
-            hyperparameters: Dict[str, str],
+            shared_hyperparameters: Dict[str, str],
             **kwargs
     ) -> None:
 
-        super().__init__(
+        self.estimator = TensorFlow(
             source_dir=local_project_dir,
             entry_point='run.py',
             instance_type=tn_instance_type,
@@ -38,33 +34,43 @@ class SagemakerTFEstimator(TensorFlow):
             sagemaker_session=sm_session,
             tags=project_tag,
             max_run=max_run,
-            hyperparameters=hyperparameters,
-            **kwargs
+            hyperparameters=shared_hyperparameters,
+            **kwargs,
         )
-        self._input = inputs
         self._training_job_name = tn_job_name
         self._project_tag = project_tag
-        self._ep_instance_init_count = ep_instance_init_count
-        self._ep_instance_type = ep_instance_type
-        self._ep_name = ep_name
 
-    def fit(self, **kwargs) -> None:
+    def model_fit(
+            self,
+            inputs: Dict[str, str],
+            hparam: Dict[str, Any] = None,
+    ) -> None:
 
-        super().fit(
-            inputs=self._input,
-            job_name=self._training_job_name,
-            wait=False,
-            logs='All',
-            **kwargs,
-        )
+        if hparam is not None:
 
-    def deploy(self, **kwargs) -> None:
+            tuner = HyperparameterTuner(
+                estimator=self.estimator,
+                objective_metric_name=hparam.get('objective_metric_name'),
+                metric_definitions=hparam.get('metric_definitions'),
+                hyperparameter_ranges=hparam.get('hyperparameter_ranges'),
+                objective_type=hparam.get('objective_type'),
+                max_jobs=hparam.get('max_jobs'),
+                max_parallel_jobs=hparam.get('max_parallel_jobs'),
+                tags=self._project_tag,
+                base_tuning_job_name=self._training_job_name,
+            )
+            tuner.fit(
+                inputs=inputs,
+                job_name=self._training_job_name,
+                wait=False,
+                logs='All',
+            )
 
-        _ = super().deploy(
-            instance_type=self._ep_instance_type,
-            initial_instance_count=self._ep_instance_init_count,
-            endpoint_name=self._ep_name,
-            tags=self._project_tag,
-            model_name=self._ep_name,
-            **kwargs,
-        )
+        else:
+
+            self.estimator.fit(
+                inputs=inputs,
+                job_name=self._training_job_name,
+                wait=False,
+                logs='All',
+            )
