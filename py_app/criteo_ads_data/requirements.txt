@@ -1,5 +1,6 @@
 absl-py==0.9.0
 appnope==0.1.0
+argon2-cffi==20.1.0
 astor==0.8.1
 astunparse==1.6.3
 attrs==19.3.0
@@ -9,6 +10,7 @@ boto3==1.15.2
 botocore==1.18.2
 cachetools==4.1.0
 certifi==2020.6.20
+cffi==1.14.4
 chardet==3.0.4
 cycler==0.10.0
 decorator==4.4.2
@@ -67,6 +69,7 @@ protobuf3-to-dict==0.1.5
 ptyprocess==0.6.0
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
+pycparser==2.20
 pydot==1.4.1
 Pygments==2.6.1
 pyparsing==2.4.7
