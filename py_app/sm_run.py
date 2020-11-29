@@ -58,5 +58,5 @@ if __name__ == '__main__':
     # fit
     estimator.model_fit(
         inputs=metadata.get('sm_input'),
-        # hparam=metadata.get('hparam_tuning'),
+        hparam=metadata.get('hparam_tuning'),
     )
