@@ -1,5 +1,7 @@
 import argparse
+import glob
 import logging
+import os
 import time
 
 from dataprep.tfrecord import tfrecord_writer
@@ -12,28 +14,39 @@ if __name__ == '__main__':
 
     # arg parser
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_filename', type=str, default='train.txt')
-    parser.add_argument('--data_path', type=str,
-                        default='../../data/criteo_ads_data/dac')
-    parser.add_argument('--nrow', type=int, default=10000)
+    parser.add_argument('--input_path', type=str,
+                        default='../../data/criteo_ads_data/dac/train_csv_1000000')
+    parser.add_argument('--output_path', type=str,
+                        default='../../data/criteo_ads_data/dac/train_tfrecord_1000000')
     args = parser.parse_args()
 
     # init config
-    data_filename = args.data_filename
-    data_path = args.data_path
-    nrow = args.nrow
-    input_path = f'{data_path}/input/{data_filename}'
-    output_path = f'{data_path}/output/tfrecord_{nrow}.tfrecord'
+    input_path = args.input_path
+    output_path = args.output_path
+    input_files = glob.glob(f'{input_path}/*.txt')
+    output_files = [
+        x.replace('.txt', '.tfrecord').replace(input_path, output_path)
+        for x in input_files
+    ]
+
+    # create output dir
+    dest_pathname = os.path.join(output_path, '')
+    if not os.path.exists(os.path.dirname(dest_pathname)):
+        os.makedirs(os.path.dirname(dest_pathname))
+        logging.info(f'Created directory {dest_pathname}.')
 
     # write .tfrecord
-    start_time = time.time()
-    logging.info('Writing .tfrecord')
-    tfrecord_writer(
-        input_path=input_path,
-        tfrecord_path=output_path,
-        delimiter='\t',
-        nrow=nrow,
-    )
-    end_time = time.time()
-    logging.info('Finished writing .tfrecord - '
-                 + f'spent: {round(end_time - start_time,2)}')
+    logging.info(f'Loaded: {input_files}')
+    for i_file, o_file in zip(input_files, output_files):
+
+        start_time = time.time()
+        logging.info('Writing .tfrecord')
+        tfrecord_writer(
+            input_path=i_file,
+            tfrecord_path=o_file,
+            delimiter='\t',
+        )
+        end_time = time.time()
+
+        logging.info(f'Finished turning {i_file} to {o_file} '
+                     + f'spent: {round(end_time - start_time,2)}')

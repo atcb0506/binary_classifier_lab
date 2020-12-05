@@ -17,7 +17,7 @@ class SagemakerBaseConfig(BaseConfig, ABC):
     ) -> None:
 
         super().__init__(project_name, env, region_name, current_time)
-        self._TAG = [
+        self.tag = [
             {
                 'Key': 'project',
                 'Value': project_name
@@ -35,36 +35,20 @@ class SagemakerBaseConfig(BaseConfig, ABC):
 
 class SagemakerTrainingConfig(SagemakerBaseConfig):
 
-    def __init__(
-            self,
-            project_name: str,
-            env: str,
-            region_name: str,
-            current_time: str,
-    ) -> None:
-
-        super().__init__(project_name, env, region_name, current_time)
-        self._INSTANCE_TYPE = 'ml.c5.2xlarge'
-        self._INSTANCE_COUNT = 1
-        self._VOLUMESIZE = 100
-        self._MAX_RUN = 1 * 24 * 60 * 60
-        self._PY_VERSION = 'py37'
-        self._TF_VERSION = tf.__version__
-
     def getter(self, attr: str) -> Any:
 
         training_job_name = f'{self.project_name}-tn-{self.current_time}'
         data = {
             'sm_bucket': self.sm_secret['sm_bucket'],
             'sm_role': self.sm_secret['sm_role'],
-            'sm_instance_type': self._INSTANCE_TYPE,
-            'sm_instance_count': self._INSTANCE_COUNT,
-            'sm_volumesize': self._VOLUMESIZE,
-            'project_tag': self._TAG,
+            'sm_instance_type': 'ml.c5.2xlarge',
+            'sm_instance_count': 1,
+            'sm_volumesize': 100,
+            'project_tag': self.tag,
             'training_job_name': training_job_name,
-            'py_version': self._PY_VERSION,
-            'tf_version': self._TF_VERSION,
-            'max_run': self._MAX_RUN,
+            'py_version': tf.__version__,
+            'tf_version': 'py37',
+            'max_run': 1 * 24 * 60 * 60,
         }
 
         return data.get(attr)
@@ -72,30 +56,17 @@ class SagemakerTrainingConfig(SagemakerBaseConfig):
 
 class SagemakerProcessingConfig(SagemakerBaseConfig):
 
-    def __init__(
-            self,
-            project_name: str,
-            env: str,
-            region_name: str,
-            current_time: str,
-    ) -> None:
-        super().__init__(project_name, env, region_name, current_time)
-        self._INSTANCE_TYPE = 'ml.c5.2xlarge'
-        self._INSTANCE_COUNT = 1
-        self._VOLUMESIZE = 100
-        self._MAX_RUN = 1 * 24 * 60 * 60
-
     def getter(self, attr: str) -> Any:
         processing_job_name = f'{self.project_name}-pc-{self.current_time}'
         data = {
             'sm_bucket': self.sm_secret['sm_bucket'],
             'sm_role': self.sm_secret['sm_role'],
-            'sm_instance_type': self._INSTANCE_TYPE,
-            'sm_instance_count': self._INSTANCE_COUNT,
-            'sm_volumesize': self._VOLUMESIZE,
-            'project_tag': self._TAG,
+            'sm_instance_type': 'ml.c5.xlarge',
+            'sm_instance_count': 20,
+            'sm_volumesize': 100,
+            'project_tag': self.tag,
             'processing_job_name': processing_job_name,
-            'max_run': self._MAX_RUN,
+            'max_run': 1 * 24 * 60 * 60,
         }
 
         return data.get(attr)
