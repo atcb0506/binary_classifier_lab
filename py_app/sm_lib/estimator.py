@@ -17,6 +17,7 @@ class SagemakerTFEstimator(object):
             local_project_dir: str,
             tn_instance_type: str,
             tn_instance_count: int,
+            tn_volumesize: int,
             tn_job_name: str,
             max_run: int,
             shared_hyperparameters: Dict[str, str],
@@ -25,9 +26,10 @@ class SagemakerTFEstimator(object):
 
         self.estimator = TensorFlow(
             source_dir=local_project_dir,
-            entry_point='run.py',
+            entry_point='run_training.py',
             instance_type=tn_instance_type,
             instance_count=tn_instance_count,
+            volume_size=tn_volumesize,
             role=sm_role,
             framework_version=tf_version,
             py_version=py_version,

@@ -17,5 +17,8 @@ This project is to compare performance of various binary classifiers
 
 The training pipeline is triggered by
 ```shell script
-python py_app/sm_run.py
+python py_app/run_sm_training.py \
+--env=test \
+--project_name=criteo \
+--region=ap-southeast-1
 ```
