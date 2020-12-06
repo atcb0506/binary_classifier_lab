@@ -39,15 +39,10 @@ def _encoder(row_data: List[str]) -> str:
 def _read_csv(
         data_path: str,
         delimiter: str,
-        nrow: int,
 ) -> Generator[str, None, None]:
     with open(data_path, 'r') as f:
         data = csv.reader(f, delimiter=delimiter)
-        for idx, row in enumerate(data):
-            if nrow == -1:
-                yield _encoder(row)
-            elif idx >= nrow:
-                break
+        for row in data:
             yield _encoder(row)
 
 
@@ -55,10 +50,9 @@ def tfrecord_writer(
         input_path: str,
         tfrecord_path: str,
         delimiter: str,
-        nrow: int,
 ) -> None:
     with tf.io.TFRecordWriter(tfrecord_path) as wf:
-        for record in _read_csv(input_path, delimiter, nrow):
+        for record in _read_csv(input_path, delimiter):
             wf.write(record)
 
 

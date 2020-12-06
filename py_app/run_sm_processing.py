@@ -2,7 +2,7 @@ import argparse
 from datetime import datetime
 
 import sagemaker as sm
-from sagemaker.processing import Processor, ProcessingInput, ProcessingOutput
+from sagemaker.processing import Processor
 
 from sm_lib.sm_config.config import SagemakerProcessingConfig
 from sm_lib.project_config.map import get_project_config

@@ -35,7 +35,7 @@ class CriteoConfig(ProjectBaseConfig):
                 'endpoint': ['python3', 'criteo_ads_data/run_processing.py'],
                 'inputs': [
                     ProcessingInput(
-                        source='s3://criteo-ads-data/prod/sample/train.txt',
+                        source='s3://criteo-ads-data/prod/train_csv',
                         destination='/opt/ml/processing/input',
                         s3_data_distribution_type='ShardedByS3Key',
                     )
@@ -43,53 +43,52 @@ class CriteoConfig(ProjectBaseConfig):
                 'outputs': [
                     ProcessingOutput(
                         source='/opt/ml/processing/output',
-                        destination='s3://criteo-ads-data/prod/sample/output',
+                        destination='s3://criteo-ads-data/prod/train_tfrecord',
                     )
                 ],
                 'arguments': [
-                    '--data_filename=train.txt',
-                    '--data_path=/opt/ml/processing',
-                    '--nrow=10000'
+                    '--input_path=/opt/ml/processing/input',
+                    '--output_path=/opt/ml/processing/output',
                 ]
             },
             'estimator': {
-                    'sm_input': {
-                        'data_source': 's3://criteo-ads-data/prod/sample/output'
-                    },
-                    'project_dir': 'criteo_ads_data',
-                    'shared_hyperparameters': {
-                        'data_filename': 'tfrecord_10000.tfrecord',
-                        'tf_logs_path': self.tf_logs_path,
-                        'batch_size': 512,
-                    }
+                'sm_input': {
+                    'data_source': 's3://criteo-ads-data/prod/sample/output'
                 },
+                'project_dir': 'criteo_ads_data',
+                'shared_hyperparameters': {
+                    'data_filename': 'tfrecord_10000.tfrecord',
+                    'tf_logs_path': self.tf_logs_path,
+                    'batch_size': 512,
+                }
+            },
             'hparam_tuning': {
-                    'objective_metric_name': 'validation:loss',
-                    'metric_definitions': [
-                        {
-                            'Name': 'train:loss',
-                            'Regex': '.*loss: ([0-9\\.]+) - auc: [0-9\\.]+.*'
-                        },
-                        {
-                            'Name': 'train:auc',
-                            'Regex': '.*loss: [0-9\\.]+ - auc: ([0-9\\.]+).*'},
-                        {
-                            'Name': 'validation:loss',
-                            'Regex': '.*step - loss: [0-9\\.]+ - auc: [0-9\\.]+ - val_loss: ([0-9\\.]+) - val_auc: [0-9\\.]+.*'
-                        },
-                        {
-                            'Name': 'validation:auc',
-                            'Regex': '.*step - loss: [0-9\\.]+ - auc: [0-9\\.]+ - val_loss: [0-9\\.]+ - val_auc: ([0-9\\.]+).*'
-                        },
-                    ],
-                    'hyperparameter_ranges': {
-                        'epochs': IntegerParameter(1, 50),
-                        'batch_size': CategoricalParameter([64, 128, 256, 512])
+                'objective_metric_name': 'validation:loss',
+                'metric_definitions': [
+                    {
+                        'Name': 'train:loss',
+                        'Regex': '.*loss: ([0-9\\.]+) - auc: [0-9\\.]+.*'
                     },
-                    'objective_type': 'Minimize',
-                    'max_jobs': 5,
-                    'max_parallel_jobs': 5,
+                    {
+                        'Name': 'train:auc',
+                        'Regex': '.*loss: [0-9\\.]+ - auc: ([0-9\\.]+).*'},
+                    {
+                        'Name': 'validation:loss',
+                        'Regex': '.*step - loss: [0-9\\.]+ - auc: [0-9\\.]+ - val_loss: ([0-9\\.]+) - val_auc: [0-9\\.]+.*'
+                    },
+                    {
+                        'Name': 'validation:auc',
+                        'Regex': '.*step - loss: [0-9\\.]+ - auc: [0-9\\.]+ - val_loss: [0-9\\.]+ - val_auc: ([0-9\\.]+).*'
+                    },
+                ],
+                'hyperparameter_ranges': {
+                    'epochs': IntegerParameter(1, 50),
+                    'batch_size': CategoricalParameter([64, 128, 256, 512])
                 },
+                'objective_type': 'Minimize',
+                'max_jobs': 5,
+                'max_parallel_jobs': 5,
+            },
         }
 
         return data.get(attr)
