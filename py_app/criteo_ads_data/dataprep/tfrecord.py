@@ -51,7 +51,9 @@ def tfrecord_writer(
         tfrecord_path: str,
         delimiter: str,
 ) -> None:
-    with tf.io.TFRecordWriter(tfrecord_path) as wf:
+
+    options = tf.io.TFRecordOptions(compression_type='GZIP')
+    with tf.io.TFRecordWriter(tfrecord_path, options=options) as wf:
         for record in _read_csv(input_path, delimiter):
             wf.write(record)
 

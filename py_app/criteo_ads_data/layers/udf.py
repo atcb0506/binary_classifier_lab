@@ -1,18 +1,34 @@
+import logging
+import pickle
+
 import tensorflow as tf
 
-from config import CAT_COLUMNS
-from layers.processing_layer import DataProcessingLayer
+from layers.processing_layer import \
+    CustomNormalizationLayer, CustomStringLookupLayer
 
 
-def build_data_processing_layer(
-        dataset: tf.data.Dataset
-) -> DataProcessingLayer:
+def adapting_preprocssing_layer(
+        feature: str,
+        data: tf.data.Dataset,
+        output_path: str,
+) -> None:
 
-    layer = DataProcessingLayer(
-        ls_cat_col=CAT_COLUMNS,
-        num_col='numeric',
-        name='data_processing_layer'
-    )
-    layer.adapt(dataset)
+    if feature == 'numeric':
+        layer_obj = CustomNormalizationLayer(
+            feature_key=feature
+        )
+    else:
+        layer_obj = CustomStringLookupLayer(
+            feature_key=feature
+        )
 
-    return layer
+    # adapting layer
+    logging.info(f'adapting layer - {feature}')
+    layer_obj.adapt(data)
+
+    # serializing layer
+    logging.info(f'serializing layer - {feature}')
+    pkl_output_path = f'{output_path}/processinglayer_{feature}.pkl'
+    serialized_layer = tf.keras.layers.serialize(layer_obj)
+    with open(pkl_output_path, 'wb') as f:
+        pickle.dump(serialized_layer, f)

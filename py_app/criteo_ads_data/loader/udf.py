@@ -1,5 +1,7 @@
-import os
-from typing import Tuple
+import glob
+import logging
+
+from typing import Tuple, Union
 
 import tensorflow as tf
 
@@ -20,22 +22,27 @@ def _recover(_, data: tf.data.Dataset) -> tf.data.Dataset:
 
 def dataprep(
         data_path: str,
-        data_filename: str,
         batch_size: int,
-        shuffle_buffer: int = 10000,
-) -> Tuple[tf.data.Dataset, tf.data.Dataset]:
+        test_split: bool = True,
+) -> Union[Tuple[tf.data.Dataset, tf.data.Dataset], tf.data.Dataset]:
+
+    # get the list of input files
+    input_files = glob.glob(f'{data_path}/*.tfrecord.gz')
+    logging.info(f'Loaded: {input_files}')
 
     tf_autotune = tf.data.experimental.AUTOTUNE
-
     dataset = tf.data.TFRecordDataset(
-        filenames=os.path.join(data_path, data_filename),
+        filenames=input_files,
+        compression_type='GZIP',
         num_parallel_reads=2,
     ) \
         .map(tfrecord_decoder, num_parallel_calls=tf_autotune) \
         .cache() \
         .batch(batch_size=batch_size) \
-        .shuffle(shuffle_buffer, reshuffle_each_iteration=False) \
         .prefetch(buffer_size=tf_autotune)
+
+    if not test_split:
+        return dataset
 
     validate_dataset = dataset.enumerate() \
         .filter(_is_validate) \
