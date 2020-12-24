@@ -1,72 +1,74 @@
+from typing import Any, Dict, List
+
+import numpy as np
 import tensorflow as tf
 from tensorflow.keras.layers.experimental.preprocessing \
-    import PreprocessingLayer, Normalization, CategoryEncoding, StringLookup
+    import Normalization, StringLookup
 
 
-class DataProcessingLayer(PreprocessingLayer):
+class CustomNormalizationLayer(Normalization):
 
-    def __init__(self, ls_cat_col, num_col, **kwargs):
-
-        super(DataProcessingLayer, self).__init__(**kwargs)
-        self._ls_cat_col = ls_cat_col
-        self._num_col = num_col
-        self._normalization_layer = Normalization(
-            name=f'{num_col}_normalization_layer',
+    def __init__(
+            self,
+            feature_key: str,
+            mean: np.ndarray = None,
+            variance: np.ndarray = None,
+    ) -> None:
+        self.feature_key = feature_key
+        super().__init__(
+            name=f'{feature_key}_normalization_layer',
+            mean=mean,
+            variance=variance,
         )
-        self._dict_stringlookup = dict()
-        self._dict_categoryencodering = dict()
-        for key in ls_cat_col:
-            self._dict_stringlookup.update({
-                key: StringLookup(name=f'{key}_indexer')
-            })
-            self._dict_categoryencodering.update({
-                key: CategoryEncoding(
-                    output_mode='binary',
-                    name=f'{key}_encoder',
-                )
-            })
 
-    def adapt(self, data, reset_state=True):
-
-        self._adapt_normalizer(data=data)
-        self._adapt_indexer(data=data)
-        self._adapt_encoder(data=data)
-
-    def _adapt_normalizer(self, data: tf.data.Dataset) -> None:
-
-        print(f'adapting col: {self._num_col}')
+    def adapt(self, data, reset_state=True) -> None:
+        tf_autotune = tf.data.experimental.AUTOTUNE
         tmp_dataset = data.map(
-            lambda feature, label: feature.get(self._num_col)
+            lambda feature, label: feature.get(self.feature_key),
+            num_parallel_calls=tf_autotune,
+            deterministic=False,
         )
-        self._normalization_layer.adapt(tmp_dataset)
+        super().adapt(data=tmp_dataset, reset_state=reset_state)
 
-    def _adapt_indexer(self, data: tf.data.Dataset) -> None:
+    def get_config(self) -> Dict[str, Any]:
+        weight = self.get_weights()
+        config = {
+            'feature_key': self.feature_key,
+            'mean': weight[0],
+            'variance': weight[1],
+        }
+        return config
 
-        for cat_col in self._ls_cat_col:
-            tmp_dataset = data.map(lambda feature, label: feature.get(cat_col))
-            indexer = self._dict_stringlookup[cat_col]
-            print(f'adapting col: {cat_col} - indexer')
-            indexer.adapt(tmp_dataset)
 
-    def _adapt_encoder(self, data: tf.data.Dataset):
+class CustomStringLookupLayer(StringLookup):
 
-        for cat_col in self._ls_cat_col:
-            tmp_dataset = data.map(lambda feature, label: feature.get(cat_col))
-            indexer = self._dict_stringlookup[cat_col]
-            indexed_dataset = tmp_dataset.map(lambda x: indexer(x))
-            encoder = self._dict_categoryencodering[cat_col]
-            print(f'adapting col: {cat_col} - encoder')
-            encoder.adapt(indexed_dataset)
+    def __init__(
+            self,
+            feature_key: str,
+            vocabulary: List[str] = None,
+    ) -> None:
 
-    def call(self, inputs, **kwargs):
+        self.feature_key = feature_key
+        super().__init__(
+            name=f'{feature_key}_stringlookup_layer',
+            vocabulary=vocabulary
+        )
 
-        ls_processing_layers = list()
-        normalization_layer = self._normalization_layer(inputs[self._num_col])
-        ls_processing_layers.append(normalization_layer)
-        for cat_col in self._ls_cat_col:
-            indexer = self._dict_stringlookup[cat_col]
-            encoder = self._dict_categoryencodering[cat_col]
-            encoding_layer = encoder(indexer(inputs[cat_col]))
-            ls_processing_layers.append(encoding_layer)
+    def adapt(self, data, reset_state=True) -> None:
+        tf_autotune = tf.data.experimental.AUTOTUNE
+        tmp_dataset = data.map(
+            lambda feature, label: feature.get(self.feature_key),
+            num_parallel_calls=tf_autotune,
+            deterministic=False,
+        )
+        super().adapt(data=tmp_dataset, reset_state=reset_state)
 
-        return tf.keras.layers.concatenate(ls_processing_layers, axis=-1)
+    def get_config(self) -> Dict[str, Any]:
+        vocabulary = self.get_vocabulary()
+        vocabulary.remove('')
+        vocabulary.remove('[UNK]')
+        config = {
+            'feature_key': self.feature_key,
+            'vocabulary': vocabulary,
+        }
+        return config

@@ -25,7 +25,7 @@ if __name__ == '__main__':
     output_path = args.output_path
     input_files = glob.glob(f'{input_path}/*.txt')
     output_files = [
-        x.replace('.txt', '.tfrecord').replace(input_path, output_path)
+        x.replace('.txt', '.tfrecord.gz').replace(input_path, output_path)
         for x in input_files
     ]
 

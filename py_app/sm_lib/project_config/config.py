@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 from sagemaker.tuner import IntegerParameter, CategoricalParameter
 from sagemaker.processing import ProcessingInput, ProcessingOutput
+from sagemaker.inputs import TrainingInput
 
 from sm_lib.basic_config import BaseConfig
 
@@ -43,7 +44,7 @@ class CriteoConfig(ProjectBaseConfig):
                 'outputs': [
                     ProcessingOutput(
                         source='/opt/ml/processing/output',
-                        destination='s3://criteo-ads-data/prod/train_tfrecord',
+                        destination='s3://criteo-ads-data/prod/train_tfrecord_gz',
                     )
                 ],
                 'arguments': [
@@ -53,11 +54,13 @@ class CriteoConfig(ProjectBaseConfig):
             },
             'estimator': {
                 'sm_input': {
-                    'data_source': 's3://criteo-ads-data/prod/sample/output'
+                    'data_source': TrainingInput(
+                        s3_data='s3://criteo-ads-data/prod/train_tfrecord_1000000_gz',
+                        distribution='ShardedByS3Key',
+                    )
                 },
                 'project_dir': 'criteo_ads_data',
                 'shared_hyperparameters': {
-                    'data_filename': 'tfrecord_10000.tfrecord',
                     'tf_logs_path': self.tf_logs_path,
                     'batch_size': 512,
                 }

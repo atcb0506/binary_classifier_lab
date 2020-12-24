@@ -42,12 +42,12 @@ class SagemakerTrainingConfig(SagemakerBaseConfig):
             'sm_bucket': self.sm_secret['sm_bucket'],
             'sm_role': self.sm_secret['sm_role'],
             'sm_instance_type': 'ml.c5.2xlarge',
-            'sm_instance_count': 1,
+            'sm_instance_count': 3,
             'sm_volumesize': 100,
             'project_tag': self.tag,
             'training_job_name': training_job_name,
-            'py_version': tf.__version__,
-            'tf_version': 'py37',
+            'py_version': 'py37',
+            'tf_version': tf.__version__,
             'max_run': 1 * 24 * 60 * 60,
         }
 

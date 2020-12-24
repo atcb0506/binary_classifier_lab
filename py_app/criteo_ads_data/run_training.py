@@ -1,21 +1,22 @@
 import argparse
 import json
+import logging
 import os
 
+from config import CAT_COLUMNS
 from hparams.config import hparams_init
 from loader.udf import dataprep
-from layers.udf import build_data_processing_layer
-from layers.ann_layer import ANNLayer
-from model.model import BinaryClassifier
+from model.embedding_model import EmbeddingModel
 from model.udf import model_fit
 
 
 def main(
         data_path: str,
-        data_filename: str,
+        layer_dir: str,
         log_dir: str,
         export_dir: str,
         batch_size: int,
+        embedding_dim_base: int,
         epochs: int,
 ) -> None:
 
@@ -25,31 +26,21 @@ def main(
         batch_size=batch_size,
         log_dir=log_dir
     )
+    lst_feature = CAT_COLUMNS
+    lst_feature.append('numeric')
 
     # data preparation
     train, validate = dataprep(
         data_path=data_path,
-        data_filename=data_filename,
         batch_size=batch_size
     )
 
-    # data precessing
-    data_processing_layer = build_data_processing_layer(
-        dataset=train
-    )
-
-    # ann layer
-    ann_block_layer = ANNLayer(
-        num_hidden_layer=2,
-        ls_hidden_unit=[128, 128],
-        name='fully_connected_layer'
-    )
-
     # model
-    binary_classifier = BinaryClassifier(
-        processing_layer=data_processing_layer,
-        model_architecture=ann_block_layer,
-        name='binary_classifier'
+    binary_classifier = EmbeddingModel(
+        lst_features=lst_feature,
+        layer_dir=layer_dir,
+        name='binary_classifier',
+        embedding_dim_base=embedding_dim_base,
     )
 
     # training
@@ -66,28 +57,33 @@ def main(
 
 if __name__ == '__main__':
 
+    # init logging
+    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s',
+                        level=logging.INFO)
+
     # arg parser
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_filename', type=str,
-                        default='tfrecord_10000.tfrecord')
     parser.add_argument('--tf_logs_path', type=str, default='../tensorboard')
-    parser.add_argument('--epochs', type=int, default=3)
+    parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--batch_size', type=int, default=512)
+    parser.add_argument('--embedding_dim_base', type=int, default=10)
     parser.add_argument('--model_dir', type=str)
     args = parser.parse_args()
 
     # handle env
     data_path = os.environ.get('SM_CHANNEL_DATA_SOURCE')
     export_dir = os.environ.get('SM_MODEL_DIR')
+    layer_dir = os.environ.get('SM_LAYER_DIR')
     job_name = json.loads(os.environ.get('SM_TRAINING_ENV'))['job_name']
     log_dir = f'{args.tf_logs_path}/log/{job_name}'
 
     # run program
     main(
         data_path=data_path,
-        data_filename=args.data_filename,
+        layer_dir=layer_dir,
         log_dir=log_dir,
         export_dir=export_dir,
         batch_size=args.batch_size,
-        epochs=args.epochs
+        embedding_dim_base=args.embedding_dim_base,
+        epochs=args.epochs,
     )

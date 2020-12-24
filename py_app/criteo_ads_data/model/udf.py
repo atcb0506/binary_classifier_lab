@@ -3,11 +3,11 @@ import tensorflow as tf
 from typing import Dict, Any
 from tensorboard.plugins.hparams import api as hp
 
-from model.model import BinaryClassifier
+from model.embedding_model import EmbeddingModel
 
 
 def model_fit(
-        model: BinaryClassifier,
+        model: EmbeddingModel,
         training_set: tf.data.Dataset,
         validation_set: tf.data.Dataset,
         export_path: str,
@@ -19,7 +19,10 @@ def model_fit(
 ) -> None:
 
     # tensorboard logging for standard metrics
-    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir)
+    tensorboard_callback = tf.keras.callbacks.TensorBoard(
+        log_dir=log_dir,
+        profile_batch=(300, 320)
+    )
 
     # tensorboard logging for hyperparameters
     keras_callback = hp.KerasCallback(
