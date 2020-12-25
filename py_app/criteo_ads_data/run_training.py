@@ -5,7 +5,7 @@ import os
 
 from config import CAT_COLUMNS
 from hparams.config import hparams_init
-from loader.udf import dataprep
+from dataprep.udf import dataprep
 from model.embedding_model import EmbeddingModel
 from model.udf import model_fit
 
