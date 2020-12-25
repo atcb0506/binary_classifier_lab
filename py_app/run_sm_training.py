@@ -3,8 +3,8 @@ from datetime import datetime
 
 import sagemaker as sm
 
-from sm_lib.project_config.map import get_project_config
-from sm_lib.sm_config.config import SagemakerTrainingConfig
+from sm_lib.config.map import get_project_config
+from sm_lib.config.sm_config import SagemakerTrainingConfig
 from sm_lib.estimator import SagemakerTFEstimator
 
 if __name__ == '__main__':
