@@ -4,7 +4,7 @@ import os
 
 from config import CAT_COLUMNS
 from layers.udf import adapting_preprocssing_layer
-from loader.udf import dataprep
+from dataprep.udf import dataprep
 
 
 if __name__ == '__main__':
@@ -16,10 +16,8 @@ if __name__ == '__main__':
     # arg parser
     parser = argparse.ArgumentParser()
     parser.add_argument('--feature_key', type=str)
-    parser.add_argument('--input_path', type=str,
-                        default='../../data/criteo_ads_data/dac/train_tfrecord_100000_gz')
-    parser.add_argument('--output_path', type=str,
-                        default='../../serialized_layer/layer_100000')
+    parser.add_argument('--input_path', type=str)
+    parser.add_argument('--output_path', type=str)
     args = parser.parse_args()
 
     # init config

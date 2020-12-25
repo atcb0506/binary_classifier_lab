@@ -5,6 +5,8 @@ this is not included in the any pipeline, and executed manually
 """
 import argparse
 import csv
+import logging
+import os
 
 
 def split_csv(
@@ -13,6 +15,7 @@ def split_csv(
         delimiter: str,
         row_per_file: int,
         n_files: int = None,
+        train_test_split: int = 5,
 ) -> None:
 
     # init
@@ -27,8 +30,15 @@ def split_csv(
         csv_reader = csv.reader(rf, delimiter=delimiter)
 
         while True:
-            output_filepath = f'{output_dir}' \
+            sub_dir = 'train'
+            if file_idx % train_test_split == 0:
+                sub_dir = 'test'
+
+            output_filepath = f'{output_dir}/{sub_dir}/' \
                               f'/{base_output_filename}_{str(file_idx)}.txt'
+            if not os.path.exists(os.path.dirname(output_filepath)):
+                os.makedirs(os.path.dirname(output_filepath))
+                logging.info(f'Created directory {output_filepath}.')
 
             with open(output_filepath, 'w') as wf:
                 eof_pointer = reader_pointer + row_per_file
