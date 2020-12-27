@@ -1,24 +1,22 @@
 from abc import ABC, abstractmethod
 
-from typing import Any
+from typing import Any, Dict
 from sagemaker.tuner import IntegerParameter, CategoricalParameter
 from sagemaker.processing import ProcessingInput, ProcessingOutput
 from sagemaker.inputs import TrainingInput
 
-from sm_lib.basic_config import BaseConfig
+from sm_lib.config.basic_config import BaseConfig
+from sm_lib.config.sm_config import SagemakerProcessingConfig
 
 
 class ProjectBaseConfig(BaseConfig, ABC):
 
     def __init__(
             self,
-            project_name: str,
-            env: str,
-            region_name: str,
-            current_time: str,
+            **kwargs,
     ) -> None:
 
-        super().__init__(project_name, env, region_name, current_time)
+        super().__init__(**kwargs)
         training_job_name = f'{self.project_name}-tn-{self.current_time}'
         self.tf_logs_path = f's3://{self.sm_secret["sm_bucket"]}' \
                             f'/{training_job_name}'
@@ -30,9 +28,9 @@ class ProjectBaseConfig(BaseConfig, ABC):
 
 class CriteoConfig(ProjectBaseConfig):
 
-    def getter(self, attr: str) -> Any:
+    def getter(self, attr: str) -> Dict[str, Any]:
         data = {
-            'processing': {
+            'tfrecord_processing': {
                 'endpoint': ['python3', 'criteo_ads_data/run_processing.py'],
                 'inputs': [
                     ProcessingInput(
@@ -50,7 +48,47 @@ class CriteoConfig(ProjectBaseConfig):
                 'arguments': [
                     '--input_path=/opt/ml/processing/input',
                     '--output_path=/opt/ml/processing/output',
-                ]
+                ],
+                'sm_config': SagemakerProcessingConfig(
+                    project_name=self.project_name,
+                    env=self.env,
+                    region_name=self.region_name,
+                    current_time=self.current_time,
+                    sm_instance_type='ml.c5.2xlarge',
+                    sm_instance_count=20,
+                    sm_volumesize=100,
+                    max_run=1 * 60 * 60,
+                )
+            },
+            'layer_processing': {
+                'endpoint': ['python3', 'criteo_ads_data/run_processing_layer.py'],
+                'inputs': [
+                    ProcessingInput(
+                        source='s3://criteo-ads-data/prod/train_tfrecord_gz/train',
+                        destination='/opt/ml/processing/input',
+                        s3_data_distribution_type='FullyReplicated',
+                    )
+                ],
+                'outputs': [
+                    ProcessingOutput(
+                        source='/opt/ml/processing/output',
+                        destination='s3://criteo-ads-data/prod/proc_layer',
+                    )
+                ],
+                'arguments': [
+                    '--input_path=/opt/ml/processing/input',
+                    '--output_path=/opt/ml/processing/output',
+                ],
+                'sm_config': SagemakerProcessingConfig(
+                    project_name=self.project_name,
+                    env=self.env,
+                    region_name=self.region_name,
+                    current_time=self.current_time,
+                    sm_instance_type='ml.c5.9xlarge',
+                    sm_instance_count=1,
+                    sm_volumesize=100,
+                    max_run=24 * 60 * 60,
+                )
             },
             'estimator': {
                 'sm_input': {

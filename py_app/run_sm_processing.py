@@ -4,8 +4,7 @@ from datetime import datetime
 import sagemaker as sm
 from sagemaker.processing import Processor
 
-from sm_lib.sm_config.config import SagemakerProcessingConfig
-from sm_lib.project_config.map import get_project_config
+from sm_lib.config.map import get_project_config
 
 if __name__ == '__main__':
 
@@ -15,27 +14,25 @@ if __name__ == '__main__':
     parser.add_argument('--env', type=str)
     parser.add_argument('--region', type=str)
     parser.add_argument('--image_uri', type=str)
+    parser.add_argument('--prcossing_task', type=str)
+
     args = parser.parse_args()
     project_name = args.project_name
     env = args.env
     image_uri = args.image_uri
     region = args.region
+    prcossing_task = args.prcossing_task
     current_time = datetime.utcnow().strftime('%Y%m%d%H%M%S')
 
     # config & metadata init
-    sm_config = SagemakerProcessingConfig(
-        project_name=project_name,
-        env=env,
-        region_name=region,
-        current_time=current_time,
-    )
     metadata = get_project_config(project_name)(
         project_name=project_name,
         env=env,
         region_name=region,
         current_time=current_time,
     )
-    proc_config = metadata.getter('processing')
+    proc_config = metadata.getter(prcossing_task)
+    sm_config = proc_config.get('sm_config')
 
     # create sagemaker session
     sess = sm.Session(

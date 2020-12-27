@@ -23,8 +23,7 @@ def _recover(_, data: tf.data.Dataset) -> tf.data.Dataset:
 def dataprep(
         data_path: str,
         batch_size: int,
-        test_split: bool = True,
-) -> Union[Tuple[tf.data.Dataset, tf.data.Dataset], tf.data.Dataset]:
+) -> tf.data.Dataset:
 
     # get the list of input files
     input_files = glob.glob(f'{data_path}/*.tfrecord.gz')
@@ -37,19 +36,7 @@ def dataprep(
         num_parallel_reads=2,
     ) \
         .map(tfrecord_decoder, num_parallel_calls=tf_autotune) \
-        .cache() \
         .batch(batch_size=batch_size) \
         .prefetch(buffer_size=tf_autotune)
 
-    if not test_split:
-        return dataset
-
-    validate_dataset = dataset.enumerate() \
-        .filter(_is_validate) \
-        .map(_recover, num_parallel_calls=tf_autotune)
-
-    train_dataset = dataset.enumerate() \
-        .filter(_is_train) \
-        .map(_recover, num_parallel_calls=tf_autotune)
-
-    return train_dataset, validate_dataset
+    return dataset

@@ -15,13 +15,11 @@ if __name__ == '__main__':
 
     # arg parser
     parser = argparse.ArgumentParser()
-    parser.add_argument('--feature_key', type=str)
     parser.add_argument('--input_path', type=str)
     parser.add_argument('--output_path', type=str)
     args = parser.parse_args()
 
     # init config
-    feature_key = args.feature_key
     input_path = args.input_path
     output_path = args.output_path
 
@@ -35,7 +33,6 @@ if __name__ == '__main__':
     data = dataprep(
         data_path=input_path,
         batch_size=512,
-        test_split=False,
     )
 
     lst_feature = ['numeric']

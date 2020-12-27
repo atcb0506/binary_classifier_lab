@@ -17,6 +17,8 @@ class BaseConfig(ABC):
         )
         self.project_name = project_name
         self.current_time = current_time
+        self.region_name = region_name
+        self.env = env
 
     @abstractmethod
     def getter(self, attr: str):
