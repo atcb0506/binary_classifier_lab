@@ -6,7 +6,8 @@ from sagemaker.processing import ProcessingInput, ProcessingOutput
 from sagemaker.inputs import TrainingInput
 
 from sm_lib.config.basic_config import BaseConfig
-from sm_lib.config.sm_config import SagemakerProcessingConfig
+from sm_lib.config.sm_config import \
+    SagemakerProcessingConfig, SagemakerTrainingConfig
 
 
 class ProjectBaseConfig(BaseConfig, ABC):
@@ -92,16 +93,34 @@ class CriteoConfig(ProjectBaseConfig):
             },
             'estimator': {
                 'sm_input': {
-                    'data_source': TrainingInput(
-                        s3_data='s3://criteo-ads-data/prod/train_tfrecord_1000000_gz',
-                        distribution='ShardedByS3Key',
-                    )
+                    'train': TrainingInput(
+                        s3_data='s3://criteo-ads-data/prod/train_tfrecord_1000000_gz/train',
+                        distribution='FullyReplicated',
+                    ),
+                    'test': TrainingInput(
+                        s3_data='s3://criteo-ads-data/prod/train_tfrecord_1000000_gz/test',
+                        distribution='FullyReplicated',
+                    ),
+                    'layer': TrainingInput(
+                        s3_data='s3://criteo-ads-data/prod/proc_layer_1000000',
+                        distribution='FullyReplicated',
+                    ),
                 },
-                'project_dir': 'criteo_ads_data',
+                'local_project_dir': 'criteo_ads_data',
                 'shared_hyperparameters': {
                     'tf_logs_path': self.tf_logs_path,
                     'batch_size': 512,
-                }
+                },
+                'sm_config': SagemakerTrainingConfig(
+                    project_name=self.project_name,
+                    env=self.env,
+                    region_name=self.region_name,
+                    current_time=self.current_time,
+                    sm_instance_type='ml.c5.2xlarge',
+                    sm_instance_count=1,
+                    sm_volumesize=300,
+                    max_run=1 * 24 * 60 * 60,
+                )
             },
             'hparam_tuning': {
                 'objective_metric_name': 'validation:loss',
@@ -112,7 +131,8 @@ class CriteoConfig(ProjectBaseConfig):
                     },
                     {
                         'Name': 'train:auc',
-                        'Regex': '.*loss: [0-9\\.]+ - auc: ([0-9\\.]+).*'},
+                        'Regex': '.*loss: [0-9\\.]+ - auc: ([0-9\\.]+).*'
+                    },
                     {
                         'Name': 'validation:loss',
                         'Regex': '.*step - loss: [0-9\\.]+ - auc: [0-9\\.]+ - val_loss: ([0-9\\.]+) - val_auc: [0-9\\.]+.*'

@@ -4,7 +4,6 @@ from datetime import datetime
 import sagemaker as sm
 
 from sm_lib.config.map import get_project_config
-from sm_lib.config.sm_config import SagemakerTrainingConfig
 from sm_lib.estimator import SagemakerTFEstimator
 
 if __name__ == '__main__':
@@ -23,12 +22,6 @@ if __name__ == '__main__':
     current_time = datetime.utcnow().strftime('%Y%m%d%H%M%S')
 
     # config & metadata init
-    sm_config = SagemakerTrainingConfig(
-        project_name=project_name,
-        env=env,
-        region_name=region,
-        current_time=current_time,
-    )
     metadata = get_project_config(project_name)(
         project_name=project_name,
         env=env,
@@ -36,6 +29,9 @@ if __name__ == '__main__':
         current_time=current_time,
     )
     estimator_config = metadata.getter('estimator')
+    sm_config = estimator_config.get('sm_config')
+
+    # hparam config setup
     hparam_config = None
     if mode == 'hparams':
         hparam_config = metadata.getter('hparam_tuning')
@@ -52,7 +48,7 @@ if __name__ == '__main__':
         tf_version=sm_config.getter('tf_version'),
         py_version=sm_config.getter('py_version'),
         project_tag=sm_config.getter('project_tag'),
-        local_project_dir=estimator_config.get('project_dir'),
+        local_project_dir=estimator_config.get('local_project_dir'),
         tn_instance_type=sm_config.getter('sm_instance_type'),
         tn_instance_count=sm_config.getter('sm_instance_count'),
         tn_volumesize=sm_config.getter('sm_volumesize'),
