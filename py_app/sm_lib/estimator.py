@@ -37,7 +37,6 @@ class SagemakerTFEstimator(object):
             tags=project_tag,
             max_run=max_run,
             hyperparameters=shared_hyperparameters,
-            distribution={'parameter_server': {'enabled': True}},
             **kwargs,
         )
         self._training_job_name = tn_job_name

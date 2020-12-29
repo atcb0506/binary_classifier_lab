@@ -1,7 +1,7 @@
 import glob
 import logging
 
-from typing import Tuple, Union
+from typing import Tuple
 
 import tensorflow as tf
 
@@ -40,3 +40,24 @@ def dataprep(
         .prefetch(buffer_size=tf_autotune)
 
     return dataset
+
+
+def train_test_prep(
+        train_path: str,
+        test_path: str,
+        batch_size: int,
+) -> Tuple[tf.data.Dataset, tf.data.Dataset]:
+
+    logging.info('Load training data')
+    train = dataprep(
+        data_path=train_path,
+        batch_size=batch_size,
+    )
+
+    logging.info('Load testing data')
+    test = dataprep(
+        data_path=test_path,
+        batch_size=batch_size,
+    )
+
+    return train, test

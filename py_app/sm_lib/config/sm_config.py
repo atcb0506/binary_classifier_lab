@@ -32,20 +32,39 @@ class SagemakerBaseConfig(BaseConfig, ABC):
 
 class SagemakerTrainingConfig(SagemakerBaseConfig):
 
+    def __init__(
+            self,
+            sm_instance_type: str,
+            sm_instance_count: int,
+            sm_volumesize: int,
+            max_run: int,
+            py_version: str = 'py37',
+            tf_version: str = tf.__version__,
+            **kwargs,
+    ) -> None:
+
+        super().__init__(**kwargs)
+        self.sm_instance_type = sm_instance_type
+        self.sm_instance_count = sm_instance_count
+        self.sm_volumesize = sm_volumesize
+        self.max_run = max_run
+        self.py_version = py_version
+        self.tf_version = tf_version
+
     def getter(self, attr: str) -> Any:
 
         training_job_name = f'{self.project_name}-tn-{self.current_time}'
         data = {
             'sm_bucket': self.sm_secret['sm_bucket'],
             'sm_role': self.sm_secret['sm_role'],
-            'sm_instance_type': 'ml.c5.2xlarge',
-            'sm_instance_count': 3,
-            'sm_volumesize': 100,
+            'sm_instance_type': self.sm_instance_type,
+            'sm_instance_count': self.sm_instance_count,
+            'sm_volumesize': self.sm_volumesize,
             'project_tag': self.tag,
             'training_job_name': training_job_name,
-            'py_version': 'py37',
-            'tf_version': tf.__version__,
-            'max_run': 1 * 24 * 60 * 60,
+            'py_version': self.py_version,
+            'tf_version': self.tf_version,
+            'max_run': self.max_run,
         }
 
         return data.get(attr)
