@@ -38,8 +38,6 @@ class SagemakerTrainingConfig(SagemakerBaseConfig):
             sm_instance_count: int,
             sm_volumesize: int,
             max_run: int,
-            py_version: str = 'py37',
-            tf_version: str = tf.__version__,
             **kwargs,
     ) -> None:
 
@@ -48,8 +46,6 @@ class SagemakerTrainingConfig(SagemakerBaseConfig):
         self.sm_instance_count = sm_instance_count
         self.sm_volumesize = sm_volumesize
         self.max_run = max_run
-        self.py_version = py_version
-        self.tf_version = tf_version
 
     def getter(self, attr: str) -> Any:
 
@@ -62,8 +58,6 @@ class SagemakerTrainingConfig(SagemakerBaseConfig):
             'sm_volumesize': self.sm_volumesize,
             'project_tag': self.tag,
             'training_job_name': training_job_name,
-            'py_version': self.py_version,
-            'tf_version': self.tf_version,
             'max_run': self.max_run,
         }
 
