@@ -1,6 +1,6 @@
 from typing import Type, Optional
 
-from sm_lib.config.proj_config import CriteoConfig
+from sagemaker_jobs.sm_lib.config.proj_config import CriteoConfig
 
 
 def get_project_config(
