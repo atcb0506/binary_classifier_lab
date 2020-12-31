@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-import tensorflow as tf
-
 from sm_lib.config.basic_config import BaseConfig
 
 
