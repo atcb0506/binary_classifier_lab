@@ -10,11 +10,13 @@ if __name__ == '__main__':
 
     # args variable
     parser = argparse.ArgumentParser()
+    parser.add_argument('--container_image_uri', type=str)
     parser.add_argument('--project_name', type=str)
     parser.add_argument('--env', type=str)
     parser.add_argument('--region', type=str)
     parser.add_argument('--mode', type=str, default='')
     args = parser.parse_args()
+    container_image_uri = args.container_image_uri
     project_name = args.project_name
     env = args.env
     mode = args.mode
@@ -43,12 +45,10 @@ if __name__ == '__main__':
 
     # create estimator
     estimator = SagemakerTFEstimator(
+        container_image_uri=container_image_uri,
         sm_session=sess,
         sm_role=sm_config.getter('sm_role'),
-        tf_version=sm_config.getter('tf_version'),
-        py_version=sm_config.getter('py_version'),
         project_tag=sm_config.getter('project_tag'),
-        local_project_dir=estimator_config.get('local_project_dir'),
         tn_instance_type=sm_config.getter('sm_instance_type'),
         tn_instance_count=sm_config.getter('sm_instance_count'),
         tn_volumesize=sm_config.getter('sm_volumesize'),

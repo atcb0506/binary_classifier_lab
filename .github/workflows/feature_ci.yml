@@ -26,13 +26,26 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Build, tag, and push image to Amazon ECR
-      id: build-image
+    - name: CI - processing image to Amazon ECR
+      id: build-image-processing
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: binary_classifier_lab
       run: |
         HEAD_GITHUB_REF=${GITHUB_REF#*/}
-        IMAGE_TAG=$(echo ${HEAD_GITHUB_REF#*/} | sed -e "s/\//_/g")
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        VERSION_TAG=$(echo ${HEAD_GITHUB_REF#*/} | sed -e "s/\//_/g")
+        IMG_TAG="${VERSION_TAG}-PROCSSING"
+        docker build -f Dockerfile.proc -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMG_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMG_TAG
+
+    - name: CI - training image to Amazon ECR
+      id: build-image-training
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: binary_classifier_lab
+      run: |
+        HEAD_GITHUB_REF=${GITHUB_REF#*/}
+        VERSION_TAG=$(echo ${HEAD_GITHUB_REF#*/} | sed -e "s/\//_/g")
+        IMG_TAG="${VERSION_TAG}-TRAINING"
+        docker build -f Dockerfile.train -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMG_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMG_TAG

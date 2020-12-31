@@ -1,7 +1,7 @@
 from typing import Dict, List, Any
 
 import sagemaker as sm
-from sagemaker.tensorflow import TensorFlow
+from sagemaker.estimator import Estimator
 from sagemaker.tuner import HyperparameterTuner
 
 
@@ -9,12 +9,10 @@ class SagemakerTFEstimator(object):
 
     def __init__(
             self,
+            container_image_uri: str,
             sm_session: sm.Session,
             sm_role: str,
-            tf_version: str,
-            py_version: str,
             project_tag: List[Dict[str, str]],
-            local_project_dir: str,
             tn_instance_type: str,
             tn_instance_count: int,
             tn_volumesize: int,
@@ -24,15 +22,12 @@ class SagemakerTFEstimator(object):
             **kwargs
     ) -> None:
 
-        self.estimator = TensorFlow(
-            source_dir=local_project_dir,
-            entry_point='run_training.py',
+        self.estimator = Estimator(
+            image_uri=container_image_uri,
             instance_type=tn_instance_type,
             instance_count=tn_instance_count,
             volume_size=tn_volumesize,
             role=sm_role,
-            framework_version=tf_version,
-            py_version=py_version,
             sagemaker_session=sm_session,
             tags=project_tag,
             max_run=max_run,

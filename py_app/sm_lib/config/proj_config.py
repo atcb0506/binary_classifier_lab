@@ -94,19 +94,18 @@ class CriteoConfig(ProjectBaseConfig):
             'estimator': {
                 'sm_input': {
                     'train': TrainingInput(
-                        s3_data='s3://criteo-ads-data/prod/train_tfrecord_1000000_gz/train',
+                        s3_data='s3://criteo-ads-data/prod/train_tfrecord_100000_gz/train',
                         distribution='FullyReplicated',
                     ),
                     'test': TrainingInput(
-                        s3_data='s3://criteo-ads-data/prod/train_tfrecord_1000000_gz/test',
+                        s3_data='s3://criteo-ads-data/prod/train_tfrecord_100000_gz/test',
                         distribution='FullyReplicated',
                     ),
                     'layer': TrainingInput(
-                        s3_data='s3://criteo-ads-data/prod/proc_layer_1000000',
+                        s3_data='s3://criteo-ads-data/prod/proc_layer_100000',
                         distribution='FullyReplicated',
                     ),
                 },
-                'local_project_dir': 'criteo_ads_data',
                 'shared_hyperparameters': {
                     'tf_logs_path': self.tf_logs_path,
                     'batch_size': 512,
