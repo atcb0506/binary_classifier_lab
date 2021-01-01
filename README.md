@@ -20,7 +20,7 @@ python sagemaker_jobs/run_sm_processing.py
 --env=test
 --project_name=criteo
 --region=ap-southeast-1
---image_uri=558467021483.dkr.ecr.ap-southeast-1.amazonaws.com/binary_classifier_lab:4.3.2-PROCSSING
+--image_uri=558467021483.dkr.ecr.ap-southeast-1.amazonaws.com/binary_classifier_lab:4.3.3-PROCSSING
 --prcossing_task=tfrecord_processing
 ```
 
@@ -31,7 +31,7 @@ python sagemaker_jobs/run_sm_processing.py
 --env=test
 --project_name=criteo
 --region=ap-southeast-1
---image_uri=558467021483.dkr.ecr.ap-southeast-1.amazonaws.com/binary_classifier_lab:4.3.2-PROCSSING
+--image_uri=558467021483.dkr.ecr.ap-southeast-1.amazonaws.com/binary_classifier_lab:4.3.3-PROCSSING
 --prcossing_task=layer_processing
 ```
 
@@ -42,7 +42,7 @@ python sagemaker_jobs/run_sm_training.py \
 --env=test
 --project_name=criteo
 --region=ap-southeast-1
---container_image_uri=558467021483.dkr.ecr.ap-southeast-1.amazonaws.com/binary_classifier_lab:4.3.2-TRAINING
+--container_image_uri=558467021483.dkr.ecr.ap-southeast-1.amazonaws.com/binary_classifier_lab:4.3.3-TRAINING
 ```
 
 ## 5. Sagemaker training - with hyperparameter tuning
@@ -52,6 +52,6 @@ python sagemaker_jobs/run_sm_training.py \
 --env=test
 --project_name=criteo
 --region=ap-southeast-1
---container_image_uri=558467021483.dkr.ecr.ap-southeast-1.amazonaws.com/binary_classifier_lab:4.3.2-TRAINING
+--container_image_uri=558467021483.dkr.ecr.ap-southeast-1.amazonaws.com/binary_classifier_lab:4.3.3-TRAINING
 --mode=hparams
 ```

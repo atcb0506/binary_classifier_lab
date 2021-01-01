@@ -3,7 +3,7 @@ from datetime import datetime
 
 import sagemaker as sm
 
-from sm_lib.config.map import get_project_config
+from sagemaker_jobs.config.map_config import get_project_config
 from sm_lib.estimator import SagemakerTFEstimator
 
 if __name__ == '__main__':

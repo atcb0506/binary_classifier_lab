@@ -5,8 +5,8 @@ from sagemaker.tuner import IntegerParameter, CategoricalParameter
 from sagemaker.processing import ProcessingInput, ProcessingOutput
 from sagemaker.inputs import TrainingInput
 
-from sagemaker_jobs.sm_lib.config.basic_config import BaseConfig
-from sagemaker_jobs.sm_lib.config.sm_config import \
+from sagemaker_jobs.config.basic_config import BaseConfig
+from sagemaker_jobs.config.sm_config import \
     SagemakerProcessingConfig, SagemakerTrainingConfig
 
 
