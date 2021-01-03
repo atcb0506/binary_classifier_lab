@@ -1,4 +1,4 @@
-FROM 558467021483.dkr.ecr.ap-southeast-1.amazonaws.com/custom_ubuntu_py_base_image:1.0.0
+FROM 763104351884.dkr.ecr.ap-southeast-1.amazonaws.com/tensorflow-training:2.3.1-cpu-py37-ubuntu18.04
 
 # Defining some variables
 RUN pip3 install --no-cache --upgrade \
